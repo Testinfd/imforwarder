@@ -141,6 +141,24 @@ async def load_and_run_plugins():
         logger.info("Attempting to start Telegram clients...")
         telethon_client, pyrogram_bot, userbot_client = await start_client()
         logger.info("All clients started successfully!")
+        
+        # Add a diagnostic handler directly to check if updates are being processed
+        from pyrogram import filters
+        
+        @pyrogram_bot.on_message(filters.text)
+        async def debug_handler(client, message):
+            logger.info(f"DEBUG: Received message: {message.text}")
+            
+            # If this is a command, let's respond to show we're alive
+            if message.text.startswith('/'):
+                logger.info(f"DEBUG: Received command: {message.text}")
+                try:
+                    await message.reply(f"Debug: I received your command: {message.text}")
+                except Exception as e:
+                    logger.error(f"DEBUG: Error replying to message: {e}")
+        
+        logger.info("Added diagnostic message handler")
+        
     except Exception as e:
         logger.error(f"Failed to start clients: {e}")
         sys.exit(1)
@@ -267,6 +285,16 @@ async def main():
     logger.info("Starting bot...")
     await load_and_run_plugins()
     logger.info("Bot is now running! Press Ctrl+C to stop.")
+    
+    # Ensure Pyrogram's idle method is called for long polling
+    from pyrogram.sync import idle
+    
+    # Only start the idle loop if not in webhook mode
+    if not SERVER_URL:
+        logger.info("Starting Pyrogram's idle loop for long polling...")
+        # Start the idle loop in a task so it doesn't block our own keep-alive loop
+        asyncio.create_task(idle())
+        logger.info("Pyrogram's idle loop started")
     
     # Keep the bot running
     try:
