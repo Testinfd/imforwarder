@@ -37,13 +37,25 @@ async def load_and_run_plugins():
 async def main():
     await load_and_run_plugins()
     print("Bot is now running! Press Ctrl+C to stop.")
-    while True:
-        await asyncio.sleep(1)  
+    # Keep the bot running
+    try:
+        while True:
+            await asyncio.sleep(1)
+    except asyncio.CancelledError:
+        # Allow the bot to gracefully shut down
+        pass
 
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    print("Starting clients ...")
+    # Create a new event loop
     try:
+        if sys.platform == 'win32':
+            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+        
+        # Use get_event_loop instead of create_new_loop to avoid deprecation warning
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        
+        print("Starting clients ...")
         loop.run_until_complete(main())
     except KeyboardInterrupt:
         print("Shutting down...")
@@ -51,7 +63,16 @@ if __name__ == "__main__":
         print(f"An error occurred: {e}")
         sys.exit(1)
     finally:
-        try:
+        # Ensure all tasks are complete before closing the loop
+        pending = asyncio.all_tasks(loop)
+        for task in pending:
+            task.cancel()
+        
+        if pending:
+            loop.run_until_complete(asyncio.gather(*pending, return_exceptions=True))
+        
+        if loop.is_running():
+            loop.stop()
+        
+        if not loop.is_closed():
             loop.close()
-        except Exception:
-            pass

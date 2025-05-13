@@ -337,10 +337,8 @@ async def process_cmd(c, m):
     if not user_client:
         await m.reply_text("You need to log in first using /login or set up a STRING session to access private channels.", quote=True)
         return
-        
-    if FREEMIUM_LIMIT == 0 and not await is_premium_user(uid):
-        await m.reply_text("This bot does not provide free servies, get subscription from OWNER")
-        return
+    
+    # All users are treated as premium (feature is free)
     
     pro = await m.reply_text('Doing some checks hold on...')
     
@@ -432,7 +430,8 @@ async def text_handler(c, m):
             return
         
         count = int(m.text)
-        maxlimit = PREMIUM_LIMIT if await is_premium_user(uid) else FREEMIUM_LIMIT
+        # Unlimited downloads for all users (up to 100,000)
+        maxlimit = 100000
 
         if count > maxlimit:
             await m.reply_text(f'Maximum limit is {maxlimit}.')

@@ -9,20 +9,8 @@ from pyrogram.types import BotCommand, InlineKeyboardButton, InlineKeyboardMarku
 from config import LOG_GROUP, OWNER_ID, FORCE_SUB
 
 async def subscribe(app, message):
-    if FORCE_SUB:
-        try:
-          user = await app.get_chat_member(FORCE_SUB, message.from_user.id)
-          if str(user.status) == "ChatMemberStatus.BANNED":
-              await message.reply_text("You are Banned. Contact -- Team SPY")
-              return 1
-        except UserNotParticipant:
-            link = await app.export_chat_invite_link(FORCE_SUB)
-            caption = f"Join our channel to use the bot"
-            await message.reply_photo(photo="https://graph.org/file/d44f024a08ded19452152.jpg",caption=caption, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Join Now...", url=f"{link}")]]))
-            return 1
-        except Exception as ggn:
-            await message.reply_text(f"Something Went Wrong. Contact admins... with following message {ggn}")
-            return 1 
+    # Force subscription is disabled, always return success
+    return 0
      
 @app.on_message(filters.command("set"))
 async def set(_, message):
@@ -138,10 +126,6 @@ async def send_or_edit_help_page(_, message, page_number):
  
 @app.on_message(filters.command("help"))
 async def help(client, message):
-    join = await subscribe(client, message)
-    if join == 1:
-        return
-     
     await send_or_edit_help_page(client, message, 0)
  
  
@@ -163,15 +147,16 @@ async def on_help_navigation(client, callback_query):
 async def terms(client, message):
     terms_text = (
         "> 📜 **Terms and Conditions** 📜\n\n"
-        "✨ We are not responsible for user deeds, and we do not promote copyrighted content. If any user engages in such activities, it is solely their responsibility.\n"
-        "✨ Upon purchase, we do not guarantee the uptime, downtime, or the validity of the plan. __Authorization and banning of users are at our discretion; we reserve the right to ban or authorize users at any time.__\n"
-        "✨ Payment to us **__does not guarantee__** authorization for the /batch command. All decisions regarding authorization are made at our discretion and mood.\n"
+        "✨ This bot is provided as-is with all features available for free.\n"
+        "✨ We do not promote copyrighted content. Users are responsible for their actions when using this bot.\n"
+        "✨ All features are provided on a best-effort basis. We aim for 100% uptime but cannot guarantee it.\n"
+        "✨ For support or questions, please use the /help command.\n"
     )
      
     buttons = InlineKeyboardMarkup(
         [
             [InlineKeyboardButton("📋 See Plans", callback_data="see_plan")],
-            [InlineKeyboardButton("💬 Contact Now", url="https://t.me/kingofpatal")],
+            [InlineKeyboardButton("❓ Help", callback_data="help_0")],
         ]
     )
     await message.reply_text(terms_text, reply_markup=buttons)
@@ -180,17 +165,17 @@ async def terms(client, message):
 @app.on_message(filters.command("plan") & filters.private)
 async def plan(client, message):
     plan_text = (
-        "> 💰 **Premium Price**:\n\n Starting from $2 or 200 INR accepted via **__Amazon Gift Card__** (terms and conditions apply).\n"
+        "> 💰 **Free Bot**:\n\n"
         "📥 **Download Limit**: Users can download up to 100,000 files in a single batch command.\n"
-        "🛑 **Batch**: You will get two modes /bulk and /batch.\n"
+        "🛑 **Batch**: You have two modes /bulk and /batch.\n"
         "   - Users are advised to wait for the process to automatically cancel before proceeding with any downloads or uploads.\n\n"
-        "📜 **Terms and Conditions**: For further details and complete terms and conditions, please send /terms.\n"
+        "📜 **Information**: All features of this bot are completely free to use. Enjoy!\n"
     )
      
     buttons = InlineKeyboardMarkup(
         [
             [InlineKeyboardButton("📜 See Terms", callback_data="see_terms")],
-            [InlineKeyboardButton("💬 Contact Now", url="https://t.me/kingofpatal")],
+            [InlineKeyboardButton("❓ Help", callback_data="help_0")],
         ]
     )
     await message.reply_text(plan_text, reply_markup=buttons)
