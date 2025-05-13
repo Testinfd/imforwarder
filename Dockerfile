@@ -1,14 +1,33 @@
 FROM python:3.10.4-slim-buster
-RUN apt update && apt upgrade -y
-RUN apt-get install git curl python3-pip ffmpeg -y
-RUN apt-get -y install git
-RUN apt-get install -y wget python3-pip curl bash neofetch ffmpeg software-properties-common
-WORKDIR /app
-COPY requirements.txt .
 
-RUN pip3 install wheel
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    python3-pip \
+    ffmpeg \
+    wget \
+    bash \
+    neofetch \
+    software-properties-common \
+    build-essential \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy requirements and install dependencies
+COPY requirements.txt .
+RUN pip3 install --no-cache-dir -U wheel
 RUN pip3 install --no-cache-dir -U -r requirements.txt
+
+# Copy application code
 COPY . .
+
+# Expose port for web server
 EXPOSE 5000
 
-CMD flask run -h 0.0.0.0 -p 5000 & python3 main.py
+# Environment variables will be set in Render dashboard
+
+# Start both the Flask web server and the Telegram bot
+CMD python3 app.py & python3 main.py

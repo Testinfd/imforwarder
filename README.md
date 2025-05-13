@@ -141,6 +141,13 @@ To run the bot, you'll need to configure a few sensitive variables. Here's how t
 4. Create a new web service, select the free plan.
 5. Connect your GitHub repo and deploy ✅.
 
+**Important for Render environment variables:**
+- In Render Dashboard, go to your service > Environment
+- Add all required environment variables without quotes around the values
+- After adding variables, select "Save and Deploy" to apply changes
+- Environment variables are case-sensitive
+- For any debugging of environment variables, check service logs
+
 </details>
 
 <details>
@@ -173,31 +180,8 @@ To run the bot, you'll need to configure a few sensitive variables. Here's how t
     ```
 
 - **For Cloud Platforms (Heroku, Railway, etc.):**
-  - Set environment variables directly in your platform’s dashboard.
+  - Set environment variables directly in your platform's dashboard.
 
 - **Using `.env` File:**
   - Create a `.env` file and add your credentials:
     ```
-    API_ID=your_api_id
-    API_HASH=your_api_hash
-    BOT_TOKEN=your_bot_token
-    ```
-  - Make sure to add `.env` to `.gitignore` to prevent it from being pushed to GitHub.
-
-**Why This is Important?**
-Your credentials can be stolen if pushed to a public repository. Always keep them secure by using environment variables or local configuration files.
-
----
-
-## 🛠️ Terms of Use
-
-Visit the [Terms of Use](https://github.com/devgaganin/Save-Restricted-Content-Bot-Repo/blob/master/TERMS_OF_USE.md) page to review and accept the guidelines.
-## Important Note
-
-**Note**: Changing the terms and commands doesn't magically make you a developer. Real development involves understanding the code, writing new functionalities, and debugging issues, not just renaming things. If only it were that easy!
-
-
-<h3 align="center">
-  Developed with ❤️ by <a href="https://t.me/team_spy_pro"> Gagan </a>
-</h3>
-
