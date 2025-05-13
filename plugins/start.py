@@ -218,3 +218,31 @@ async def see_terms(client, callback_query):
     await callback_query.message.edit_text(terms_text, reply_markup=buttons)
  
  
+@app.on_message(filters.command("start"))
+async def start_command(client, message):
+    """
+    Handler for the /start command
+    """
+    user_name = message.from_user.first_name if message.from_user else "User"
+    start_text = (
+        f"👋 Hello {user_name}!\n\n"
+        "I'm IMForwarder Bot, designed to help you download and forward Telegram media files.\n\n"
+        "🚀 **Available Commands**:\n"
+        "• /start - Display this welcome message\n"
+        "• /help - Show detailed help information\n"
+        "• /login - Log in to access private channels\n"
+        "• /batch - Download files in bulk\n"
+        "• /settings - Customize bot behavior\n\n"
+        "Just send me a Telegram message link or use one of the commands to get started!"
+    )
+    
+    buttons = InlineKeyboardMarkup(
+        [
+            [InlineKeyboardButton("📚 Help", callback_data="help_0")],
+            [InlineKeyboardButton("🛠️ Settings", callback_data="settings")]
+        ]
+    )
+    
+    await message.reply_text(start_text, reply_markup=buttons)
+
+ 

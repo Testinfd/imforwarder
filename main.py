@@ -28,6 +28,9 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from shared_client import start_client
 from config import BOT_TOKEN, API_ID, API_HASH
 
+# Import app modules to register webhook handler
+import app
+
 # Get server URL from environment variable or use localhost for local development
 SERVER_URL = os.environ.get("SERVER_URL", None)
 
@@ -137,6 +140,35 @@ async def load_and_run_plugins():
         except Exception as e:
             logger.error(f"Error loading plugin {plugin}: {e}")
 
+async def handle_telegram_update(update):
+    """
+    Handle updates from Telegram webhook
+    """
+    logger.info(f"Processing update from webhook: {update.get('update_id')}")
+    try:
+        # Get the clients
+        client, app_client, userbot = await start_client()
+        
+        # Process message updates
+        if 'message' in update:
+            message = update['message']
+            logger.info(f"Message from {message.get('from', {}).get('username')}: {message.get('text')}")
+            
+            # Process commands
+            if 'text' in message and message['text'].startswith('/'):
+                # Let the Pyrogram client handle it
+                # This is a workaround as we can't directly inject the update
+                # into Pyrogram's dispatcher
+                logger.info(f"Command received: {message['text']}")
+        
+        # Process callback query updates
+        elif 'callback_query' in update:
+            callback_query = update['callback_query']
+            logger.info(f"Callback query from {callback_query.get('from', {}).get('username')}: {callback_query.get('data')}")
+    
+    except Exception as e:
+        logger.error(f"Error processing webhook update: {e}")
+
 async def main():
     # Check Telegram API connectivity first
     success, bot_info = check_telegram_api()
@@ -165,6 +197,10 @@ async def main():
             logger.warning("Webhook setup failed. Falling back to long polling mode.")
     else:
         logger.info("No SERVER_URL provided. Using long polling mode.")
+    
+    # Register the webhook handler
+    app.register_update_handler(handle_telegram_update)
+    logger.info("Webhook handler registered with Flask app")
     
     logger.info("Starting bot...")
     await load_and_run_plugins()
