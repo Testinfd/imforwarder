@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     wget \
     bash \
+    procps \
     software-properties-common \
     build-essential \
     && apt-get clean \
