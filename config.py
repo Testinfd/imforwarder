@@ -26,26 +26,41 @@ OWNER_ID = list(map(int, os.getenv("OWNER_ID", "").split())) # list seperated vi
 DB_NAME = os.getenv("DB_NAME", "telegram_downloader")
 STRING = os.getenv("STRING", None) # optional
 
-# Clean LOG_GROUP value before converting to int
-log_group_value = os.getenv("LOG_GROUP", "-1001234456")
-# Extract only numeric part with the leading minus sign if present
-if log_group_value:
-    log_group_match = re.match(r'(-?\d+)', log_group_value)
-    if log_group_match:
-        log_group_value = log_group_match.group(1)
-    else:
-        log_group_value = "-1002019378706"  # Default if no valid number found
+# Simpler LOG_GROUP parsing
+DEFAULT_LOG_GROUP = -1002019378706  # Define a default log group ID
+LOG_GROUP = DEFAULT_LOG_GROUP # Default to a known safe integer value
 
-# Use the user's correct channel ID if it was specified
-if os.getenv("LOG_GROUP") == "-1002019378706":
-    log_group_value = "-1002019378706"  # Use the correct channel ID provided by the user
+log_group_env_val = os.getenv("LOG_GROUP")
 
-try:
-    LOG_GROUP = int(log_group_value)  # optional with -100
-    print(f"Using LOG_GROUP: {LOG_GROUP}")
-except ValueError:
-    print(f"Invalid LOG_GROUP value: {log_group_value}, using default")
-    LOG_GROUP = -1001234456  # Default value if parsing fails
+if log_group_env_val:
+    try:
+        # Try to convert the environment variable directly
+        LOG_GROUP = int(log_group_env_val)
+        print(f"Using LOG_GROUP from environment: {LOG_GROUP}")
+    except ValueError:
+        # If conversion fails, try to extract numeric part
+        # This handles cases like "-100xxxxxxP" by extracting "-100xxxxxx"
+        numeric_part = "".join(filter(lambda x: x.isdigit() or x == '-', log_group_env_val))
+        if numeric_part.startswith('-'):
+            # Ensure only one leading '-' and it's at the start
+            rest = numeric_part[1:].replace('-', '')
+            numeric_part = '-' + rest
+        else:
+            numeric_part = numeric_part.replace('-', '')
+
+        if numeric_part and (numeric_part == '-' or numeric_part.lstrip('-').isdigit()):
+            try:
+                LOG_GROUP = int(numeric_part)
+                print(f"Successfully parsed numeric part of LOG_GROUP '{log_group_env_val}' to: {LOG_GROUP}")
+            except ValueError:
+                print(f"Could not parse numeric part '{numeric_part}' from LOG_GROUP '{log_group_env_val}'. Using default: {DEFAULT_LOG_GROUP}")
+                LOG_GROUP = DEFAULT_LOG_GROUP # Fallback to default if numeric extraction also fails
+        else:
+            print(f"LOG_GROUP environment variable '{log_group_env_val}' is not a valid integer. Using default: {DEFAULT_LOG_GROUP}")
+            LOG_GROUP = DEFAULT_LOG_GROUP # Fallback to default if no numeric part found or invalid
+else:
+    print(f"LOG_GROUP environment variable not set. Using default: {DEFAULT_LOG_GROUP}")
+    # LOG_GROUP is already set to DEFAULT_LOG_GROUP
 
 FORCE_SUB = None  # Disabled force subscription
 MASTER_KEY = os.getenv("MASTER_KEY", "gK8HzLfT9QpViJcYeB5wRa3DmN7P2xUq") # for session encryption

@@ -70,7 +70,7 @@ start_flask() {
     sleep 3
     
     # Check if Flask is running
-    if ! ps -p $FLASK_PID > /dev/null; then
+    if ! kill -0 $FLASK_PID 2>/dev/null; then
         echo "Flask failed to start. Check logs/flask.log for details."
         exit 1
     fi
@@ -86,7 +86,7 @@ start_bot() {
     sleep 5
     
     # Check if bot is still running
-    if ! ps -p $BOT_PID > /dev/null; then
+    if ! kill -0 $BOT_PID 2>/dev/null; then
         echo "Telegram bot failed to start. Fetching last 10 lines of log:"
         tail -n 10 logs/bot.log
         return 1
@@ -111,13 +111,13 @@ start_bot() {
 cleanup() {
     echo "Shutting down services..."
     # Kill the flask app if it's running
-    if [ ! -z "$FLASK_PID" ] && ps -p $FLASK_PID > /dev/null; then
+    if [ ! -z "$FLASK_PID" ] && kill -0 $FLASK_PID 2>/dev/null; then
         echo "Shutting down Flask app (PID: $FLASK_PID)..."
         kill $FLASK_PID 2>/dev/null || echo "Flask app already stopped"
     fi
     
     # Kill the bot if it's running
-    if [ ! -z "$BOT_PID" ] && ps -p $BOT_PID > /dev/null; then
+    if [ ! -z "$BOT_PID" ] && kill -0 $BOT_PID 2>/dev/null; then
         echo "Shutting down Telegram bot (PID: $BOT_PID)..."
         kill $BOT_PID 2>/dev/null || echo "Bot already stopped"
     fi
