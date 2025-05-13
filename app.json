@@ -22,9 +22,9 @@
       "required": true
     },
     "MONGO_DB": {
-      "description": "MongoDB connection URL (https://cloud.mongodb.com)",
+      "description": "MongoDB connection URL (optional - the bot uses an in-memory database by default)",
       "value": "",
-      "required": true
+      "required": false
     },
     "OWNER_ID": {
       "description": "User ID(s) to be set as bot owner(s), separated by space (e.g., 1234 5678)",

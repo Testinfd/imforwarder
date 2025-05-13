@@ -10,8 +10,7 @@ import cv2
 import logging
 import asyncio
 from datetime import datetime, timedelta
-from motor.motor_asyncio import AsyncIOMotorClient
-from config import MONGO_DB as MONGO_URI, DB_NAME
+from config import MONGO_DB
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -20,8 +19,8 @@ PUBLIC_LINK_PATTERN = re.compile(r'(https?://)?(t\.me|telegram\.me)/([^/]+)(/(\d
 PRIVATE_LINK_PATTERN = re.compile(r'(https?://)?(t\.me|telegram\.me)/c/(\d+)(/(\d+))?')
 VIDEO_EXTENSIONS = {"mp4", "mkv", "avi", "mov", "wmv", "flv", "webm", "mpeg", "mpg", "3gp"}
 
-mongo_client = AsyncIOMotorClient(MONGO_URI)
-db = mongo_client[DB_NAME]
+# Use the in-memory database directly
+db = MONGO_DB
 users_collection = db["users"]
 premium_users_collection = db["premium_users"]
 statistics_collection = db["statistics"]
