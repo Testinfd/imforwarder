@@ -1,4 +1,5 @@
-telethon
+telethon==1.24.0
+pyrogram==2.1.32
 python-dotenv
 psutil
 opencv-python-headless
@@ -9,8 +10,8 @@ https://www.dl.dropboxusercontent.com/scl/fi/e0fo6fcjn8kmr5r0x6wvg/myownpyro.zip
 aiohttp
 telethon-tgcrypto
 # MongoDB related packages (optional)
-# motor
-# pymongo
+motor
+pymongo
 pytz
 Pillow
 tgcrypto
@@ -20,3 +21,8 @@ mutagen
 yt-dlp
 requests
 cryptography
+python-decouple
+ethon==0.1.5
+cryptg
+pydub
+ffmpeg-python

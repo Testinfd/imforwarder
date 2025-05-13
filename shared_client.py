@@ -8,7 +8,7 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from telethon import TelegramClient
-from config import API_ID, API_HASH, BOT_TOKEN, STRING
+from config import API_ID, API_HASH, BOT_TOKEN, STRING, SESSION
 from pyrogram import Client
 
 # Debug environment variables
@@ -16,6 +16,7 @@ print(f"Environment variables loaded:")
 print(f"API_ID value: {API_ID}, type: {type(API_ID)}")
 print(f"API_HASH value: {API_HASH}, type: {type(API_HASH)}")
 print(f"BOT_TOKEN available: {'Yes' if BOT_TOKEN else 'No'}")
+print(f"SESSION available: {'Yes' if SESSION else 'No'}")
 print(f"STRING available: {'Yes' if STRING else 'No'}")
 
 # Make sure API_ID is an integer
@@ -35,42 +36,43 @@ if not BOT_TOKEN:
     print("Error: BOT_TOKEN environment variable is not set")
     sys.exit(1)
 
+# Use SESSION as fallback for STRING for backward compatibility
+session_string = STRING if STRING else SESSION
+
 # Initialize the clients
 client = TelegramClient("telethonbot", api_id, API_HASH)
 app = Client("pyrogrambot", api_id=api_id, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
-# Initialize userbot (if STRING session is provided)
-if STRING:
-    try:
-        userbot = Client("4gbbot", api_id=api_id, api_hash=API_HASH, session_string=STRING)
-    except Exception as e:
-        print(f"Error initializing userbot: {e}")
-        userbot = None
+# Initialize userbot only if we have a session string
+userbot = None
+if session_string:
+    userbot = Client("saverestricted", api_id=api_id, api_hash=API_HASH, session_string=session_string)
+    print("Userbot initialized with session string")
 else:
-    userbot = None
-    print("No STRING session provided. Userbot functionality will be limited.")
+    print("WARNING: No session string provided. Some features related to accessing restricted content will be limited.")
 
 async def start_client():
     try:
         if not client.is_connected():
             await client.start(bot_token=BOT_TOKEN)
-            print("SpyLib started...")
+            print("Telethon bot started...")
         
-        # Initialize the userbot if available
-        userbot_started = False
+        await app.start()
+        print("Pyrogram bot started...")
+        
         if userbot:
             try:
                 await userbot.start()
-                print("Userbot started...")
-                userbot_started = True
+                print("Userbot started successfully!")
+                print("Bot is ready to access restricted content!")
             except Exception as e:
-                print(f"Warning: Could not start userbot. Check your STRING session - it may be invalid or expired: {e}")
-                print("Continuing without userbot functionality...")
+                print(f"Error starting userbot: {e}")
+                print("Please check your SESSION or STRING environment variable.")
+                print("The bot will continue running with limited functionality.")
+                # Don't exit if userbot fails - continue with limited functionality
         
-        await app.start()
-        print("Pyro App Started...")
-        return client, app, userbot if userbot_started else None
+        return client, app, userbot
     except Exception as e:
-        print(f"Failed to start clients: {e}")
+        print(f"Critical error starting clients: {e}")
         sys.exit(1)
 

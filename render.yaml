@@ -5,8 +5,8 @@ services:
     plan: free
     repo: https://github.com/Testinfd/imforwarder.git
     branch: main
-    buildCommand: pip install -r requirements.txt && chmod +x start.sh
-    startCommand: ./start.sh
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py & python app.py
     envVars:
       - key: API_ID
         sync: false
@@ -18,15 +18,35 @@ services:
         sync: false
       - key: OWNER_ID
         sync: false
+      - key: DB_NAME
+        value: telegram_downloader
+      # Session string for userbot (accessing restricted content)
+      # Can be set as either STRING or SESSION for compatibility
       - key: STRING
+        sync: false
+      - key: SESSION
+        sync: false
+      # Optional configuration
+      - key: FORCESUB
+        sync: false
+      - key: AUTH
         sync: false
       - key: LOG_GROUP
         sync: false
       - key: FORCE_SUB
+        sync: false  
+      # Security settings
+      - key: MASTER_KEY
         sync: false
-      - key: DB_NAME
-        value: telegram_downloader
+      - key: IV_KEY
+        sync: false
+      # Feature limits
       - key: FREEMIUM_LIMIT
-        value: "100000"
+        value: "0"
       - key: PREMIUM_LIMIT
-        value: "100000" 
+        value: "500"
+      # Media cookies
+      - key: YT_COOKIES
+        sync: false
+      - key: INSTA_COOKIES
+        sync: false 
