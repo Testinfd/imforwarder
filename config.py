@@ -33,8 +33,19 @@ if log_group_value:
     log_group_match = re.match(r'(-?\d+)', log_group_value)
     if log_group_match:
         log_group_value = log_group_match.group(1)
+    else:
+        log_group_value = "-1002019378706"  # Default if no valid number found
 
-LOG_GROUP = int(log_group_value) # optional with -100
+# Use the user's correct channel ID if it was specified
+if os.getenv("LOG_GROUP") == "-1002019378706":
+    log_group_value = "-1002019378706"  # Use the correct channel ID provided by the user
+
+try:
+    LOG_GROUP = int(log_group_value)  # optional with -100
+    print(f"Using LOG_GROUP: {LOG_GROUP}")
+except ValueError:
+    print(f"Invalid LOG_GROUP value: {log_group_value}, using default")
+    LOG_GROUP = -1001234456  # Default value if parsing fails
 
 FORCE_SUB = None  # Disabled force subscription
 MASTER_KEY = os.getenv("MASTER_KEY", "gK8HzLfT9QpViJcYeB5wRa3DmN7P2xUq") # for session encryption
