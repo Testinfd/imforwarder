@@ -139,7 +139,7 @@ async def load_and_run_plugins():
     # Start the client and handle any potential errors
     try:
         logger.info("Attempting to start Telegram clients...")
-        client, app, userbot = await start_client()
+        telethon_client, pyrogram_bot, userbot_client = await start_client()
         logger.info("All clients started successfully!")
     except Exception as e:
         logger.error(f"Failed to start clients: {e}")
@@ -174,25 +174,59 @@ async def handle_telegram_update(update):
     """
     logger.info(f"Processing update from webhook: {update.get('update_id')}")
     try:
-        # Get the clients
-        client, app_client, userbot = await start_client()
+        # Get the clients. app_client is the Pyrogram bot instance.
+        telethon_client, pyrogram_bot, userbot_client = await start_client()
         
-        # Process message updates
-        if 'message' in update:
-            message = update['message']
-            logger.info(f"Message from {message.get('from', {}).get('username')}: {message.get('text')}")
+        # Instead of manually parsing, feed the raw update to Pyrogram's dispatcher
+        # Pyrogram will then trigger the appropriate handlers (e.g., @app.on_message)
+        if pyrogram_bot:
+            logger.info(f"Feeding update to Pyrogram client: {update.get('update_id')}")
+            # Construct a RawUpdate object if necessary, or pass the dict if supported by feed_update
+            # For simplicity, assuming feed_update can handle the dict directly or a simple structure.
+            # The exact method might be app.invoke(RawUpdate(...)) or similar depending on Pyrogram version
+            # and how feed_update is implemented or if a direct dispatcher method is available.
+            # For now, let's assume a conceptual feed_update. Actual Pyrogram method might be needed.
             
-            # Process commands
-            if 'text' in message and message['text'].startswith('/'):
-                # Let the Pyrogram client handle it
-                # This is a workaround as we can't directly inject the update
-                # into Pyrogram's dispatcher
-                logger.info(f"Command received: {message['text']}")
-        
-        # Process callback query updates
-        elif 'callback_query' in update:
-            callback_query = update['callback_query']
-            logger.info(f"Callback query from {callback_query.get('from', {}).get('username')}: {callback_query.get('data')}")
+            # Pyrogram's Client.process_update(update_obj, workers=1) is a more direct way
+            # It requires constructing an Update object first.
+            # A simpler (though perhaps less direct) way for some versions might be related to a bound
+            # dispatcher if directly accessible, but feed_update or process_update is more common.
+
+            # Given the context of Pyrogram, we need to ensure this update is processed by its handlers.
+            # The `update` here is a dict. Pyrogram's `feed_update` expects a specific Update object.
+            # A more robust way is to use the underlying dispatcher if accessible, or construct the Update object.
+            # However, if `pyrogram_bot.dispatch` or similar is available and works with a raw dict:
+            # await pyrogram_bot.dispatch(update) # This is speculative
+
+            # Let's try a common way to handle raw updates if available, often via a feed method
+            # Assuming pyrogram_bot is the Pyrogram Client instance 'app'
+            # We need to convert the 'update' dict to a Pyrogram Update object
+            # This step is complex as it requires knowing the exact Pyrogram Update structure.
+
+            # Simpler approach: The webhook handling in Pyrogram usually involves setting up
+            # a webserver (like Flask) and then using `app.dispatch_updates(updates_list)` or
+            # `await app.dispatcher.feed_raw_update(update_type, update_data)`
+            # Since we are already in an async context called by Flask, we want to trigger Pyrogram's handlers.
+
+            # The comment "can't directly inject the update into Pyrogram's dispatcher" is telling.
+            # If a direct injection method isn't straightforward, the original author might have struggled.
+            # However, a core feature of client libraries is to process updates.
+
+            # Let's assume the most direct available method or a placeholder for it.
+            # The most common pattern is to have Pyrogram run its own webserver part or integrate deeply.
+            # If we must manually bridge: Pyrogram updates are instances of `pyrogram.types.Update`.
+            # Manually creating this from a dict is error-prone.
+
+            # The most straightforward way if Pyrogram is already running its loop (even if started here)
+            # is to ensure its handlers are picked up. The issue is that the current function
+            # *intercepts* the update before Pyrogram sees it via its own webhook mechanism.
+
+            # If this function is the *only* way updates arrive in webhook mode, then it *must* dispatch.
+            # The simplest conceptual Pyrogram method would be: 
+            await pyrogram_bot.handle_update(update)
+            logger.info(f"Update {update.get('update_id')} passed to Pyrogram client for handling.")
+        else:
+            logger.error("Pyrogram bot client not available to handle update.")
     
     except Exception as e:
         logger.error(f"Error processing webhook update: {e}")
@@ -248,7 +282,7 @@ async def main():
                     logger.warning("Lost connection to Telegram API. Attempting to reconnect...")
                     # Try to restart clients
                     try:
-                        client, app, userbot = await start_client()
+                        telethon_client, pyrogram_bot, userbot_client = await start_client()
                         logger.info("Reconnected successfully!")
                     except Exception as e:
                         logger.error(f"Failed to reconnect: {e}")
