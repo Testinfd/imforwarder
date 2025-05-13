@@ -38,7 +38,7 @@ if not BOT_TOKEN:
 # Initialize the clients
 client = TelegramClient("telethonbot", api_id, API_HASH)
 app = Client("pyrogrambot", api_id=api_id, api_hash=API_HASH, bot_token=BOT_TOKEN)
-userbot = Client("4gbbot", api_id=api_id, api_hash=API_HASH, session_string=STRING)
+userbot = Client("4gbbot", api_id=api_id, api_hash=API_HASH, session_string=STRING) if STRING else None
 
 async def start_client():
     try:
@@ -46,13 +46,16 @@ async def start_client():
             await client.start(bot_token=BOT_TOKEN)
             print("SpyLib started...")
         
-        if STRING:
+        if STRING and userbot:
             try:
                 await userbot.start()
                 print("Userbot started...")
             except Exception as e:
-                print(f"Hey honey!! check your premium string session, it may be invalid or expired: {e}")
-                sys.exit(1)
+                print(f"Warning: Could not start userbot. Check your STRING session - it may be invalid or expired: {e}")
+                print("Continuing without userbot functionality...")
+                userbot = None
+        else:
+            print("No STRING session provided. Userbot functionality will be limited.")
         
         await app.start()
         print("Pyro App Started...")

@@ -18,6 +18,12 @@ services:
         sync: false
       - key: OWNER_ID
         sync: false
+      - key: STRING
+        sync: false
+      - key: LOG_GROUP
+        sync: false
+      - key: FORCE_SUB
+        sync: false
       - key: DB_NAME
         value: telegram_downloader
       - key: FREEMIUM_LIMIT

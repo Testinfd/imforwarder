@@ -110,13 +110,19 @@ async def get_msg(c, u, i, d, lt):
                         elif hasattr(peer, 'user_id'): resolved_id = peer.user_id
                         else: resolved_id = chat_id
                         return await u.get_messages(resolved_id, d)
-                    except Exception:
+                    except Exception as e:
+                        print(f"Error resolving peer: {e}")
                         try:
                             chat = await u.get_chat(chat_id)
                             return await u.get_messages(chat.id, d)
-                        except Exception:
-                            async for _ in u.get_dialogs(limit=200): pass
-                            return await u.get_messages(chat_id, d)
+                        except Exception as e:
+                            print(f"Error getting chat: {e}")
+                            try:
+                                async for _ in u.get_dialogs(limit=200): pass
+                                return await u.get_messages(chat_id, d)
+                            except Exception as e:
+                                print(f"Final attempt error: {e}")
+                                return None
                 except Exception as e:
                     print(f'Private channel error: {e}')
                     return None
@@ -156,7 +162,7 @@ async def get_uclient(uid):
         except Exception as e:
             print(f'User client error: {e}')
             return ubot if ubot else Y
-    return Y
+    return ubot if ubot else Y
 
 async def prog(c, t, C, h, m, st):
     global P
@@ -322,14 +328,20 @@ async def process_msg(c, u, m, d, lt, uid, i):
 
 @X.on_message(filters.command(['batch', 'single']))
 async def process_cmd(c, m):
+    r = await sub(c, m)
+    if r == 1: return
     uid = m.from_user.id
-    cmd = m.command[0]
     
+    # Check if user client is available
+    user_client = await get_uclient(uid)
+    if not user_client:
+        await m.reply_text("You need to log in first using /login or set up a STRING session to access private channels.", quote=True)
+        return
+        
     if FREEMIUM_LIMIT == 0 and not await is_premium_user(uid):
         await m.reply_text("This bot does not provide free servies, get subscription from OWNER")
         return
     
-    if await sub(c, m) == 1: return
     pro = await m.reply_text('Doing some checks hold on...')
     
     if is_user_active(uid):
@@ -341,8 +353,8 @@ async def process_cmd(c, m):
         await pro.edit('Add your bot with /setbot first')
         return
     
-    Z[uid] = {'step': 'start' if cmd == 'batch' else 'start_single'}
-    await pro.edit(f'Send {"start link..." if cmd == "batch" else "link you to process"}.')
+    Z[uid] = {'step': 'start' if m.command[0] == 'batch' else 'start_single'}
+    await pro.edit(f'Send {"start link..." if m.command[0] == "batch" else "link you to process"}.')
 
 @X.on_message(filters.command(['cancel', 'stop']))
 async def cancel_cmd(c, m):
