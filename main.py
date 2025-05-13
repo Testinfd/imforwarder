@@ -10,7 +10,7 @@ import importlib
 # Make sure the current directory is in the path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from imforware.shared_client import start_client
+from shared_client import start_client
 
 async def load_and_run_plugins():
     # Start the client and handle any potential errors
@@ -27,7 +27,7 @@ async def load_and_run_plugins():
 
     for plugin in plugins:
         try:
-            module = importlib.import_module(f"imforware.plugins.{plugin}")
+            module = importlib.import_module(f"plugins.{plugin}")
             if hasattr(module, f"run_{plugin}_plugin"):
                 print(f"Running {plugin} plugin...")
                 await getattr(module, f"run_{plugin}_plugin")()
