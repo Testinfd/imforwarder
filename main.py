@@ -25,8 +25,31 @@ logger = logging.getLogger(__name__)
 # Make sure the current directory is in the path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from shared_client import start_client
-from config import BOT_TOKEN, API_ID, API_HASH
+# Log startup information
+logger.info("Starting Telegram forwarder bot...")
+logger.info(f"Python version: {sys.version}")
+logger.info(f"Current directory: {os.getcwd()}")
+
+try:
+    from shared_client import start_client
+    from config import BOT_TOKEN, API_ID, API_HASH, MONGO_DB
+    
+    # Verify in-memory database is initialized
+    logger.info("Verifying in-memory database...")
+    test_collection = MONGO_DB["test"]
+    test_collection.insert_one({"test": "connection"})
+    test_result = test_collection.find_one({"test": "connection"})
+    if test_result:
+        logger.info("In-memory database is working correctly")
+    else:
+        logger.warning("In-memory database test failed. Some features may not work correctly.")
+except ImportError as e:
+    logger.error(f"Import error: {e}")
+    logger.error("Please check your configuration and ensure all dependencies are installed")
+    sys.exit(1)
+except Exception as e:
+    logger.error(f"Initialization error: {e}")
+    sys.exit(1)
 
 # Import app modules to register webhook handler
 import app
@@ -125,6 +148,11 @@ async def load_and_run_plugins():
     # Load and run plugins
     logger.info("Loading plugins...")
     plugin_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "plugins")
+    
+    if not os.path.exists(plugin_dir):
+        logger.error(f"Plugin directory not found: {plugin_dir}")
+        sys.exit(1)
+        
     plugins = [f[:-3] for f in os.listdir(plugin_dir) if f.endswith(".py") and f != "__init__.py"]
     logger.info(f"Found plugins: {plugins}")
 

@@ -6,7 +6,12 @@ from shared_client import app
 from pyrogram import filters
 from pyrogram.errors import UserNotParticipant
 from pyrogram.types import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup
-from config import LOG_GROUP, OWNER_ID, FORCE_SUB
+from config import LOG_GROUP, OWNER_ID, FORCE_SUB, MONGO_DB
+import platform
+import sys
+import logging
+
+logger = logging.getLogger(__name__)
 
 async def subscribe(app, message):
     # Force subscription is disabled, always return success
@@ -224,9 +229,31 @@ async def start_command(client, message):
     Handler for the /start command
     """
     user_name = message.from_user.first_name if message.from_user else "User"
+    
+    # Get system information
+    python_version = sys.version.split()[0]
+    system_info = platform.system() + " " + platform.release()
+    
+    # Check database status
+    try:
+        # Insert test data to verify database functionality
+        test_id = f"test_{message.from_user.id}"
+        test_collection = MONGO_DB["test_collection"]
+        test_collection.insert_one({"_id": test_id, "test": True})
+        db_status = "✅ Working" if test_collection.find_one({"_id": test_id}) else "⚠️ Issues detected"
+        # Clean up test data
+        test_collection.delete_one({"_id": test_id})
+    except Exception as e:
+        logger.error(f"Database test error: {e}")
+        db_status = "❌ Error detected"
+    
     start_text = (
         f"👋 Hello {user_name}!\n\n"
         "I'm IMForwarder Bot, designed to help you download and forward Telegram media files.\n\n"
+        "📊 **System Information**:\n"
+        f"• Python: {python_version}\n"
+        f"• System: {system_info}\n"
+        f"• Database: {db_status}\n\n"
         "🚀 **Available Commands**:\n"
         "• /start - Display this welcome message\n"
         "• /help - Show detailed help information\n"

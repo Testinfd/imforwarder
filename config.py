@@ -3,6 +3,7 @@
 # See LICENSE file in the repository root for full license text.
 
 import os
+import re
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -24,7 +25,17 @@ MONGO_URI = os.getenv("MONGO_URI", "")  # Kept for backward compatibility
 OWNER_ID = list(map(int, os.getenv("OWNER_ID", "").split())) # list seperated via space
 DB_NAME = os.getenv("DB_NAME", "telegram_downloader")
 STRING = os.getenv("STRING", None) # optional
-LOG_GROUP = int(os.getenv("LOG_GROUP", "-1001234456")) # optional with -100
+
+# Clean LOG_GROUP value before converting to int
+log_group_value = os.getenv("LOG_GROUP", "-1001234456")
+# Extract only numeric part with the leading minus sign if present
+if log_group_value:
+    log_group_match = re.match(r'(-?\d+)', log_group_value)
+    if log_group_match:
+        log_group_value = log_group_match.group(1)
+
+LOG_GROUP = int(log_group_value) # optional with -100
+
 FORCE_SUB = None  # Disabled force subscription
 MASTER_KEY = os.getenv("MASTER_KEY", "gK8HzLfT9QpViJcYeB5wRa3DmN7P2xUq") # for session encryption
 IV_KEY = os.getenv("IV_KEY", "s7Yx5CpVmE3F") # for decryption
