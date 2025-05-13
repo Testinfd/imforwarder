@@ -24,10 +24,13 @@ RUN pip3 install --no-cache-dir -U -r requirements.txt
 # Copy application code
 COPY . .
 
+# Make the start script executable
+RUN chmod +x start.sh
+
 # Expose port for web server
 EXPOSE 5000
 
 # Environment variables will be set in Render dashboard
 
-# Start both the Flask web server and the Telegram bot
-CMD python3 app.py & python3 main.py
+# Start both the Flask web server and the Telegram bot using the script
+CMD ["./start.sh"]

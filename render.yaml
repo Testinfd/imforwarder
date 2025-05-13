@@ -5,8 +5,8 @@ services:
     plan: free
     repo: https://github.com/Testinfd/imforwarder.git
     branch: main
-    buildCommand: pip install -r requirements.txt
-    startCommand: python main.py & python app.py
+    buildCommand: pip install -r requirements.txt && chmod +x start.sh
+    startCommand: ./start.sh
     envVars:
       - key: API_ID
         sync: false
@@ -27,6 +27,6 @@ services:
       - key: DB_NAME
         value: telegram_downloader
       - key: FREEMIUM_LIMIT
-        value: "0"
+        value: "100000"
       - key: PREMIUM_LIMIT
-        value: "500" 
+        value: "100000" 
